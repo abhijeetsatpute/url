@@ -9,19 +9,32 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+let browser;
 app.get('/url', async(req, res) => {
     // We will be coding here
-    const {url} = (req.query);
-    console.log(url);
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    console.time();
-    await page.goto(url);
-    const resolvedUrl = await page.url();
-    console.log(resolvedUrl);
-    console.timeEnd();
-    res.send(resolvedUrl)
-
+    let resp = {}
+    try{
+        const {url} = (req.query);
+        const page = await browser.newPage();
+        console.time();
+        await page.goto(url);
+        const resolvedUrl = await page.url();
+        resp.url = resolvedUrl;
+        resp.timeTaken = console.timeEnd();
+    }catch(err){
+        resp.error = 'Error in fetching url';
+    }
+    
+    await page.close();
+    return res.send({resolvedurl : resolvedUrl, })
 });
 
-app.listen(port, () => console.log(`Hello world app listening on port ${port}!`));
+app.listen(port, async () => {
+    try{
+        browser = await puppeteer.launch();
+    }catch(err){
+        console.log("Error in launching browser");
+        process.exit()
+    }
+    console.log(`Server is running on port ${port}`);
+});
