@@ -13,20 +13,20 @@ let browser;
 app.get('/url', async(req, res) => {
     // We will be coding here
     let resp = {}
+    const page = await browser.newPage();
     try{
+        const start = performance.now();
         const {url} = (req.query);
-        const page = await browser.newPage();
-        console.time();
         await page.goto(url);
         const resolvedUrl = await page.url();
         resp.url = resolvedUrl;
-        resp.timeTaken = console.timeEnd();
+        resp.timeTaken = performance.now() - start;
     }catch(err){
         resp.error = 'Error in fetching url';
     }
     
     await page.close();
-    return res.send({resolvedurl : resolvedUrl, })
+    return res.send(resp)
 });
 
 app.listen(port, async () => {
